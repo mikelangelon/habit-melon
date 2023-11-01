@@ -1,10 +1,11 @@
 package api
 
 import (
-	"github.com/go-chi/chi"
-	"github.com/go-chi/render"
 	"log"
 	"net/http"
+
+	"github.com/go-chi/chi"
+	"github.com/go-chi/render"
 )
 
 type Server struct {
@@ -31,6 +32,10 @@ func (s *Server) Start() {
 	}
 }
 
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.router.ServeHTTP(w, r)
+}
+
 func (s *Server) routes() {
 	s.router.Use(render.SetContentType(render.ContentTypeJSON))
 	s.router.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +45,7 @@ func (s *Server) routes() {
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
-	health := healthResponse{OK: true}
+	health := HealthResponse{OK: true}
 	err := render.Render(w, r, health)
 	if err != nil {
 		return
