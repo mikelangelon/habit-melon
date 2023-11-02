@@ -7,4 +7,7 @@ require (
 	github.com/go-chi/render v1.0.3
 )
 
-require github.com/ajg/form v1.5.1 // indirect
+require (
+	cloud.google.com/go v0.110.10 // indirect
+	github.com/ajg/form v1.5.1 // indirect
+)
