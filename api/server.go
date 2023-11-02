@@ -23,7 +23,7 @@ func NewServer() *Server {
 
 func (s *Server) Start() {
 	server := http.Server{
-		Addr:    ":3000",
+		Addr:    ":8100",
 		Handler: s.router,
 	}
 
