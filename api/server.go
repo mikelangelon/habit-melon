@@ -4,21 +4,32 @@ import (
 	"cloud.google.com/go/civil"
 	"encoding/json"
 	"fmt"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/render"
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/go-chi/chi"
-	"github.com/go-chi/render"
 )
 
 type Server struct {
 	router *chi.Mux
+
+	habitStore map[string]Habit
 }
 
 func NewServer() *Server {
 	srv := &Server{
 		router: chi.NewRouter(),
+		habitStore: map[string]Habit{
+			"Study Dutch": {
+				Description: "Study Dutch",
+				Days: []civil.Date{
+					{Day: 1, Month: time.April, Year: 2023},
+					{Day: 2, Month: time.April, Year: 2023},
+					{Day: 3, Month: time.April, Year: 2023},
+				},
+			},
+		},
 	}
 
 	srv.routes()
@@ -60,18 +71,8 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) getHabits(w http.ResponseWriter, r *http.Request) {
-	health := HabitsResponse{
-		Habits: []Habit{
-			{
-				Description: "Study Dutch",
-				Days: []civil.Date{
-					{Day: 1, Month: time.April, Year: 2023},
-					{Day: 2, Month: time.April, Year: 2023},
-					{Day: 3, Month: time.April, Year: 2023},
-				},
-			},
-		}}
-	err := render.Render(w, r, health)
+	habits := HabitsResponse{Habits: convertToList(s.habitStore)}
+	err := render.Render(w, r, habits)
 	if err != nil {
 		return
 	}
@@ -79,12 +80,31 @@ func (s *Server) getHabits(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) postHabit(w http.ResponseWriter, r *http.Request) {
 	var habit Habit
-	json.NewDecoder(r.Body).Decode(&habit)
+	err := json.NewDecoder(r.Body).Decode(&habit)
+	if err != nil {
+
+	}
+	s.habitStore[habit.Description] = habit
 	return
 }
 
 func (s *Server) getHabit(w http.ResponseWriter, r *http.Request) {
 	habitID := chi.URLParam(r, "habitID")
-	w.Write([]byte(fmt.Sprintf("something something: %s", habitID)))
+	v, ok := s.habitStore[habitID]
+	if !ok {
+
+	}
+	_, err := w.Write([]byte(fmt.Sprintf("%v", v)))
+	if err != nil {
+
+	}
 	return
+}
+
+func convertToList(m map[string]Habit) []Habit {
+	var list []Habit
+	for _, v := range m {
+		list = append(list, v)
+	}
+	return list
 }
