@@ -3,7 +3,6 @@ package api
 import (
 	"cloud.google.com/go/civil"
 	"encoding/json"
-	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
 	"log"
@@ -74,6 +73,7 @@ func (s *Server) getHabits(w http.ResponseWriter, r *http.Request) {
 	habits := HabitsResponse{Habits: convertToList(s.habitStore)}
 	err := render.Render(w, r, habits)
 	if err != nil {
+		http.Error(w, http.StatusText(500), 500)
 		return
 	}
 }
@@ -82,9 +82,11 @@ func (s *Server) postHabit(w http.ResponseWriter, r *http.Request) {
 	var habit Habit
 	err := json.NewDecoder(r.Body).Decode(&habit)
 	if err != nil {
-
+		http.Error(w, http.StatusText(500), 500)
+		return
 	}
 	s.habitStore[habit.Description] = habit
+	w.WriteHeader(http.StatusCreated)
 	return
 }
 
@@ -92,11 +94,18 @@ func (s *Server) getHabit(w http.ResponseWriter, r *http.Request) {
 	habitID := chi.URLParam(r, "habitID")
 	v, ok := s.habitStore[habitID]
 	if !ok {
-
+		http.Error(w, http.StatusText(404), 404)
+		return
 	}
-	_, err := w.Write([]byte(fmt.Sprintf("%v", v)))
+	bytes, err := json.Marshal(v)
 	if err != nil {
-
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+	_, err = w.Write(bytes)
+	if err != nil {
+		http.Error(w, http.StatusText(500), 500)
+		return
 	}
 	return
 }
