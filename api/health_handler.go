@@ -4,10 +4,10 @@ import (
 	"net/http"
 )
 
-type healthResponse struct {
+type HealthResponse struct {
 	OK bool `json:"ok"`
 }
 
-func (hr healthResponse) Render(w http.ResponseWriter, r *http.Request) error {
+func (hr HealthResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
