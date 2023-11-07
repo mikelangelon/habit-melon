@@ -127,7 +127,6 @@ func TestPutHabit(t *testing.T) {
 	got := getHabit(t, s, changedHabit.Description)
 	assert.Equal(t, changedHabit, got)
 }
-
 func TestPutHabitNotFound(t *testing.T) {
 	s := api.NewServer()
 	h := api.Habit{
