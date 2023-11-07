@@ -59,6 +59,8 @@ func (s *Server) routes() {
 	s.router.Get("/v1/habits", s.getHabits)
 	s.router.Get("/v1/habit/{habitID}", s.getHabit)
 	s.router.Post("/v1/habit", s.postHabit)
+	s.router.Put("/v1/habit/{habitID}", s.putHabit)
+	s.router.Delete("/v1/habit/{habitID}", s.deleteHabit)
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
@@ -76,18 +78,6 @@ func (s *Server) getHabits(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(500), 500)
 		return
 	}
-}
-
-func (s *Server) postHabit(w http.ResponseWriter, r *http.Request) {
-	var habit Habit
-	err := json.NewDecoder(r.Body).Decode(&habit)
-	if err != nil {
-		http.Error(w, http.StatusText(500), 500)
-		return
-	}
-	s.habitStore[habit.Description] = habit
-	w.WriteHeader(http.StatusCreated)
-	return
 }
 
 func (s *Server) getHabit(w http.ResponseWriter, r *http.Request) {
@@ -109,7 +99,42 @@ func (s *Server) getHabit(w http.ResponseWriter, r *http.Request) {
 	}
 	return
 }
+func (s *Server) postHabit(w http.ResponseWriter, r *http.Request) {
+	var habit Habit
+	err := json.NewDecoder(r.Body).Decode(&habit)
+	if err != nil {
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+	s.habitStore[habit.Description] = habit
+	w.WriteHeader(http.StatusCreated)
+	return
+}
+func (s *Server) putHabit(w http.ResponseWriter, r *http.Request) {
+	habitID := chi.URLParam(r, "habitID")
+	var habit Habit
+	err := json.NewDecoder(r.Body).Decode(&habit)
+	if err != nil {
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+	if _, ok := s.habitStore[habitID]; !ok {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	s.habitStore[habitID] = habit
+	return
+}
 
+func (s *Server) deleteHabit(w http.ResponseWriter, r *http.Request) {
+	habitID := chi.URLParam(r, "habitID")
+	if _, ok := s.habitStore[habitID]; !ok {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	delete(s.habitStore, habitID)
+	return
+}
 func convertToList(m map[string]Habit) []Habit {
 	var list []Habit
 	for _, v := range m {
