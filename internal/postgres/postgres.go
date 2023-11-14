@@ -41,12 +41,9 @@ func createTables(db *sqlx.DB) error {
 	createHabitDaysTableQuery := `
 		CREATE TABLE IF NOT EXISTS habit_days
 		(
-			habit_id integer,
+			habit_id integer REFERENCES habits (habit_id) ON DELETE CASCADE,
 			day    DATE, 
-			PRIMARY KEY (habit_id, day),
-			CONSTRAINT fk_habit_id
-			  FOREIGN KEY(habit_id)
-			  REFERENCES habits(habit_id)
+			PRIMARY KEY (habit_id, day)
 		);
     `
 	_, err = db.Exec(createHabitDaysTableQuery)
