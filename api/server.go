@@ -111,7 +111,6 @@ func (s *Server) getHabit(w http.ResponseWriter, r *http.Request) {
 		default:
 			http.Error(w, http.StatusText(500), 500)
 		}
-
 		return
 	}
 	if err := habitOnResponse(habit, w); err != nil {
@@ -132,11 +131,12 @@ func (s *Server) postHabit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(500), 500)
 		return
 	}
+	w.WriteHeader(http.StatusCreated)
 	if err := habitOnResponse(habit, w); err != nil {
 		http.Error(w, http.StatusText(500), 500)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
+
 	return
 }
 func (s *Server) putHabit(w http.ResponseWriter, r *http.Request) {
@@ -155,7 +155,12 @@ func (s *Server) putHabit(w http.ResponseWriter, r *http.Request) {
 	habit.ID = &id
 	habit, err = s.habitService.Update(context.TODO(), habit)
 	if err != nil {
-		http.Error(w, http.StatusText(500), 500)
+		switch err {
+		case app.ErrHabitNotFound:
+			http.Error(w, http.StatusText(404), 404)
+		default:
+			http.Error(w, http.StatusText(500), 500)
+		}
 		return
 	}
 	if err := habitOnResponse(habit, w); err != nil {
@@ -173,7 +178,12 @@ func (s *Server) deleteHabit(w http.ResponseWriter, r *http.Request) {
 	}
 	err = s.habitService.Delete(context.TODO(), id)
 	if err != nil {
-		http.Error(w, http.StatusText(500), 500)
+		switch err {
+		case app.ErrHabitNotFound:
+			http.Error(w, http.StatusText(404), 404)
+		default:
+			http.Error(w, http.StatusText(500), 500)
+		}
 		return
 	}
 	return

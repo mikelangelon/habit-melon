@@ -120,8 +120,9 @@ func TestPutHabit(t *testing.T) {
 		Description: "Test",
 		Days:        []civil.Date{{Day: 8, Month: time.April, Year: 2023}},
 	}
-	postHabit(t, s, newHabit)
+	habit := postHabit(t, s, newHabit)
 	changedHabit := app.Habit{
+		ID:          habit.ID,
 		Description: "Test",
 		Days: []civil.Date{
 			{Day: 8, Month: time.April, Year: 2023},
@@ -134,7 +135,9 @@ func TestPutHabit(t *testing.T) {
 }
 func TestPutHabitNotFound(t *testing.T) {
 	s := setup(t)
-	h := api.Habit{
+	var id int64 = 404
+	h := app.Habit{
+		ID:          &id,
 		Description: "Test",
 		Days: []civil.Date{
 			{Day: 8, Month: time.April, Year: 2023},
@@ -145,7 +148,7 @@ func TestPutHabitNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	req, err := http.NewRequest("PUT", fmt.Sprintf("/v1/habit/%s", h.Description), bytes.NewReader(request))
+	req, err := http.NewRequest("PUT", fmt.Sprintf("/v1/habit/%d", id), bytes.NewReader(request))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,9 +165,9 @@ func TestDeleteHabit(t *testing.T) {
 		Description: "Test",
 		Days:        []civil.Date{{Day: 8, Month: time.April, Year: 2023}},
 	}
-	postHabit(t, s, newHabit)
+	habit := postHabit(t, s, newHabit)
 
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("/v1/habit/%s", newHabit.Description), http.NoBody)
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("/v1/habit/%d", *habit.ID), http.NoBody)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -179,7 +182,7 @@ func TestDeleteHabit(t *testing.T) {
 func TestDeleteHabitNotFound(t *testing.T) {
 	s := setup(t)
 
-	req, err := http.NewRequest("DELETE", "/v1/habit/something", http.NoBody)
+	req, err := http.NewRequest("DELETE", "/v1/habit/404", http.NoBody)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -259,7 +262,7 @@ func putHabit(t *testing.T, s *api.Server, h app.Habit) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	req, err := http.NewRequest("PUT", fmt.Sprintf("/v1/habit/%d", h.ID), bytes.NewReader(request))
+	req, err := http.NewRequest("PUT", fmt.Sprintf("/v1/habit/%d", *h.ID), bytes.NewReader(request))
 	if err != nil {
 		t.Fatal(err)
 	}

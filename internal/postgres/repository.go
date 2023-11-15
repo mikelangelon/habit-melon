@@ -66,9 +66,16 @@ func (r *Repository) DeleteHabitDays(ctx context.Context, id int64, days *[]civi
 
 func (r *Repository) UpdateHabit(ctx context.Context, habit app.Habit) (app.Habit, error) {
 	q := `UPDATE habits SET description = $1 WHERE habit_id = $2;`
-	_, err := r.db.ExecContext(ctx, q, habit.Description, habit.ID)
+	result, err := r.db.ExecContext(ctx, q, habit.Description, habit.ID)
 	if err != nil {
-		return app.Habit{}, err
+		return habit, err
+	}
+	updated, err := result.RowsAffected()
+	if err != nil {
+		return habit, err
+	}
+	if updated == 0 {
+		return habit, app.ErrHabitNotFound
 	}
 	err = r.DeleteHabitDays(ctx, *habit.ID, nil)
 	if err != nil {
@@ -82,9 +89,16 @@ func (r *Repository) UpdateHabit(ctx context.Context, habit app.Habit) (app.Habi
 
 func (r *Repository) DeleteHabit(ctx context.Context, habitID int64) error {
 	q := `DELETE FROM habits WHERE habit_id = $1`
-	_, err := r.db.ExecContext(ctx, q, habitID)
+	result, err := r.db.ExecContext(ctx, q, habitID)
 	if err != nil {
 		return err
+	}
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return app.ErrHabitNotFound
 	}
 	return nil
 }
