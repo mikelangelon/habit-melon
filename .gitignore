@@ -22,3 +22,7 @@ go.work
 
 *.xml
 *iml
+
+# Builds
+habit-melon
+Makefile.local
